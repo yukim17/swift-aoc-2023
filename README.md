@@ -30,14 +30,14 @@ let allChallenges: [any AdventDay] = [
 ]
 ```
 
-Then implement part 1 and 2. The `AdventOfCode.swift` file controls which challenge
+Then implement part 1 and 2. 
+
+The `AdventOfCode.swift` file controls which challenge
 is run with `swift run`. Add your new type to its `allChallenges` array. By default 
 it runs the most recent challenge.
 
-The `AdventOfCode.swift` file controls which day's challenge is run
-with `swift run`. By default that runs the most recent challenge in the package.
-
 ## Templates
 
-You can use file template for each new challenge. Copy given template into the 
-folder `~/Library/Developer/Xcode/Templates` and you can find it in menu `File -> New File -> Advent Of Code File`.
+You can use file template to easily create files for new challenges. Copy given template into the 
+folder `~/Library/Developer/Xcode/Templates` and you can find it in menu 
+`File -> New File -> Advent Of Code File`.
