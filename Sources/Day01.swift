@@ -2,75 +2,50 @@ import Algorithms
 import Foundation
 
 struct Day01: AdventDay {
-    // Save your data in a corresponding text file in the `Data` directory.
     var data: String
 
-    // Splits input data into its component parts and convert from string.
-    var entities: [String] {
+    private var entities: [String] {
         data.split(separator: "\n").map(String.init)
     }
 
-    private static let digitsRegExp = "one|two|three|four|five|six|seven|eight|zero"
-    private let regex = try? NSRegularExpression(pattern: "\\d|\(Day01.digitsRegExp)")
-    private let regexReversed = try? NSRegularExpression(pattern: "\\d|\(Day01.digitsRegExp.reversed())")
+    private static let spellingDigits = [
+        "one": "one1one",
+        "two": "two2two",
+        "three": "three3three",
+        "four": "four4four",
+        "five": "five5five",
+        "six": "six6six",
+        "seven": "seven7seven",
+        "eight": "eight8eight",
+        "nine": "nine9nine"
+    ]
 
-    // Replace this with your solution for the first part of the day's challenge.
     func part1() -> Any {
-        let digits = entities.map { str in
+        let digits = calibrationValues(from: entities)
+        return digits.reduce(0, +)
+    }
+
+    func part2() -> Any {
+        let preparedStrings = entities.map { str in
+            replaceSpellingDigits(in: str)
+        }
+        let digits = calibrationValues(from: preparedStrings)
+        return digits.reduce(0, +)
+    }
+
+    private func calibrationValues(from array: [String]) -> [Int] {
+        return array.map { str in
             let digits = str.components(separatedBy: CharacterSet.decimalDigits.inverted).joined(separator: "")
             let resultString = (digits.first?.lowercased() ?? "") + (digits.last?.lowercased() ?? "")
             return Int(resultString) ?? 0
         }
-        return digits.reduce(0, +)
     }
 
-    // Replace this with your solution for the second part of the day's challenge.
-    func part2() -> Any {
-        let digits = entities.map { str in
-            let range = NSRange(location: 0, length: str.count)
-            //            let matchesFirst = regex?.firstMatch(in: str, range: range)
-            //            let matchesLast = regexReversed?.firstMatch(in: String(str.reversed()), range: range)
-            guard let firstMatch = regex?.firstMatch(in: str, range: range),
-                  let lastMatch = regexReversed?.firstMatch(in: str.reversedString(), range: range) else { return 0 }
-
-            let firstDigit = str.substring(with: firstMatch.range).replacedWithDigit()
-            let secondDigit = str.reversedString()
-                .substring(with: lastMatch.range)
-                .reversedString()
-                .replacedWithDigit()
-
-            return Int(firstDigit + secondDigit) ?? 0
+    private func replaceSpellingDigits(in string: String) -> String {
+        var resultString = string
+        Day01.spellingDigits.keys.forEach { digit in
+            resultString = resultString.replacingOccurrences(of: digit, with: Day01.spellingDigits[digit] ?? "")
         }
-        return digits.reduce(0, +)
-    }
-}
-
-fileprivate extension String {
-
-    private static let spellingDigits = [
-        "one": 1,
-        "two": 2,
-        "three": 3,
-        "four": 4,
-        "five": 5,
-        "six": 6,
-        "seven": 7,
-        "eight": 8,
-        "nine": 9,
-        "zero": 0
-    ]
-
-    func substring(with range: NSRange) -> String {
-        guard let newRange = Range(range, in: self) else { return "" }
-        return String(self[newRange])
-    }
-
-    func replacedWithDigit() -> String {
-        guard let digitToReplace = String.spellingDigits[self] else { return self }
-        return String(digitToReplace)
-    }
-
-    func reversedString() -> String {
-        String(self.reversed())
+        return resultString
     }
 }
