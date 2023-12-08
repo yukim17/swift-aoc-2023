@@ -1,4 +1,4 @@
-# Advent of Code Swift Starter Project
+# Advent of Code in Swift
 
 [![Language](https://img.shields.io/badge/language-Swift-red.svg)](https://swift.org)
 
