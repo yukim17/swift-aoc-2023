@@ -126,7 +126,7 @@ struct Day03: AdventDay {
 //            }
 //        }
 
-        return solve(for: data)
+        return 0
     }
 
     private func hasNextStringAGear(str: String, range: Range<String.Index>) -> String.Index? {
