@@ -59,13 +59,13 @@ struct Day05: AdventDay {
 
     func part1() -> Any {
         let locations = entities.seeds.map { seed in
-            let soil = matchingComponent(component: seed, seedToSoil: entities.seedToSoil)
-            let fertilizer = matchingComponent(component: soil, seedToSoil: entities.soilToFertilizer)
-            let water = matchingComponent(component: fertilizer, seedToSoil: entities.fertilizierToWater)
-            let light = matchingComponent(component: water, seedToSoil: entities.waterToLight)
-            let temperature = matchingComponent(component: light, seedToSoil: entities.lightToTemperature)
-            let humidity = matchingComponent(component: temperature, seedToSoil: entities.temperatureToHumidity)
-            return matchingComponent(component: humidity, seedToSoil: entities.humidityToLocation)
+            let soil = matchingComponent(component: seed, mapping: entities.seedToSoil)
+            let fertilizer = matchingComponent(component: soil, mapping: entities.soilToFertilizer)
+            let water = matchingComponent(component: fertilizer, mapping: entities.fertilizierToWater)
+            let light = matchingComponent(component: water, mapping: entities.waterToLight)
+            let temperature = matchingComponent(component: light, mapping: entities.lightToTemperature)
+            let humidity = matchingComponent(component: temperature, mapping: entities.temperatureToHumidity)
+            return matchingComponent(component: humidity, mapping: entities.humidityToLocation)
         }
         return locations.min() ?? 0
     }
@@ -73,22 +73,17 @@ struct Day05: AdventDay {
     func part2() -> Any {
         let seedsRanges = entities.seeds.chunked(into: entities.seeds.count / 2).map { chunk in
             return chunk[0]..<chunk[0] + chunk[1]
-        }.reduce(into: []) { partialResult, nextRange in
-            partialResult.append(contentsOf: nextRange)
-        }
-        print("Seeds are ready")
-
-        let locations = seedsRanges.map { seed in
-            let soil = matchingComponent(component: seed, seedToSoil: entities.seedToSoil)
-            let fertilizer = matchingComponent(component: soil, seedToSoil: entities.soilToFertilizer)
-            let water = matchingComponent(component: fertilizer, seedToSoil: entities.fertilizierToWater)
-            let light = matchingComponent(component: water, seedToSoil: entities.waterToLight)
-            let temperature = matchingComponent(component: light, seedToSoil: entities.lightToTemperature)
-            let humidity = matchingComponent(component: temperature, seedToSoil: entities.temperatureToHumidity)
-            return matchingComponent(component: humidity, seedToSoil: entities.humidityToLocation)
         }
 
-        return locations.min() ?? 0
+        let soil = checkMatchingRanges(sourceRanges: seedsRanges, mapping: entities.seedToSoil)
+        let fertilizer = checkMatchingRanges(sourceRanges: soil, mapping: entities.soilToFertilizer)
+        let water = checkMatchingRanges(sourceRanges: fertilizer, mapping: entities.fertilizierToWater)
+        let light = checkMatchingRanges(sourceRanges: water, mapping: entities.waterToLight)
+        let temperature = checkMatchingRanges(sourceRanges: light, mapping: entities.lightToTemperature)
+        let humidity = checkMatchingRanges(sourceRanges: temperature, mapping: entities.temperatureToHumidity)
+        let location = checkMatchingRanges(sourceRanges: humidity, mapping: entities.humidityToLocation)
+
+        return location.map({ $0.lowerBound }).min() ?? 0
     }
 
     private func rangesFrom(string: String) -> (source: Range<Int>, destination: Range<Int>)? {
@@ -121,14 +116,56 @@ struct Day05: AdventDay {
         return (sourceRange, destinationRange)
     }
 
-    func matchingComponent(component: Int, seedToSoil: [Range<Int>: Range<Int>]) -> Int {
-        guard let source = seedToSoil.keys.first(where: { $0.contains(component) }),
-                let destination = seedToSoil[source] else { return component }
+    func matchingComponent(component: Int, mapping: [Range<Int>: Range<Int>]) -> Int {
+        guard let source = mapping.keys.first(where: { $0.contains(component) }),
+                let destination = mapping[source] else { return component }
 
         let offset = component - source.startIndex
         let destComponent = destination.startIndex + offset
 
         return destComponent
+    }
+
+    func checkMatchingRanges(sourceRanges: [Range<Int>], mapping: [Range<Int>: Range<Int>]) -> [Range<Int>] {
+        var rangesToCheck = sourceRanges
+        var result: [Range<Int>] = []
+        var prevResultCount = 0
+
+        repeat {
+            prevResultCount = result.count
+            for rangeToCheck in rangesToCheck {
+                var isOverlappingFound = false
+                for (sourceRange, destRange) in mapping {
+                    guard !isOverlappingFound else { break }
+                    guard sourceRange.overlaps(rangeToCheck) else { continue }
+                    isOverlappingFound.toggle()
+
+                    let overlappingLowerBound = max(sourceRange.lowerBound, rangeToCheck.lowerBound)
+                    let overlappingUpperBound = min(sourceRange.upperBound, rangeToCheck.upperBound)
+                    let overlappingRange = overlappingLowerBound...overlappingUpperBound
+                    let offset = destRange.lowerBound - sourceRange.lowerBound
+                    result.append((overlappingRange.lowerBound + offset)..<(overlappingRange.upperBound + offset))
+
+                    if overlappingRange.lowerBound > rangeToCheck.lowerBound {
+                        rangesToCheck.append(rangeToCheck.lowerBound..<overlappingRange.lowerBound)
+                    }
+
+                    if overlappingRange.upperBound < rangeToCheck.upperBound {
+                        rangesToCheck.append((overlappingRange.upperBound)..<(rangeToCheck.upperBound))
+                    }
+                }
+
+                if isOverlappingFound {
+                    rangesToCheck.removeAll(where: { $0 == rangeToCheck })
+                }
+            }
+        } while result.count > prevResultCount
+
+        if !rangesToCheck.isEmpty {
+            result.append(contentsOf: rangesToCheck)
+        }
+
+        return result
     }
 }
 
