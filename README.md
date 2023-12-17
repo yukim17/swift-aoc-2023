@@ -2,7 +2,7 @@
 
 [![Language](https://img.shields.io/badge/language-Swift-red.svg)](https://swift.org)
 
-Daily programming puzzles at [Advent of Code](<https://adventofcode.com/>), by
+My solutions to daily programming puzzles at [Advent of Code](<https://adventofcode.com/>), by
 [Eric Wastl](<http://was.tl/>).
 
 ## Usage
